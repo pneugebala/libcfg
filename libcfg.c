@@ -320,6 +320,8 @@ int libcfg_write_entries(FILE* f_ptr, LibCfgEntry* entries, int entries_size,
       return LIBCFG_ERROR_WRITING_FILE;
     }
   }
+
+  return LIBCFG_OK;
 }
 
 int libcfg_write(const char* path, LibCfgRoot* cfg) {
@@ -337,8 +339,11 @@ int libcfg_write(const char* path, LibCfgRoot* cfg) {
     }
   }
 
-  libcfg_write_entries(f_ptr, cfg->entries, cfg->entries_size,
-                       cfg->sections_size > 0);
+  if ((libcfg_last_error = libcfg_write_entries(
+           f_ptr, cfg->entries, cfg->entries_size, cfg->sections_size > 0)) !=
+      LIBCFG_OK) {
+    return libcfg_last_error;
+  }
 
   for (int i = 0; i < cfg->sections_size; i++) {
     LibCfgSection* section = &cfg->sections[i];

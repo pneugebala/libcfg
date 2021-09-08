@@ -369,3 +369,150 @@ int libcfg_write(const char* path, LibCfgRoot* cfg) {
   libcfg_last_error = LIBCFG_OK;
   return LIBCFG_OK;
 }
+
+int libcfg_add_entry_to_list(LibCfgEntry** entries, int* entries_size,
+                             const char* key, const char* value,
+                             LibCfgEntry** out_entry) {
+  LibCfgEntry* new_entries =
+      realloc(*entries, ((*entries_size) + 1) * sizeof(LibCfgEntry));
+
+  if (new_entries == NULL) {
+    return LIBCFG_ERROR_MALLOC;
+  }
+
+  *entries = new_entries;
+  (*entries_size)++;
+
+  LibCfgEntry* entry = &(*entries)[(*entries_size) - 1];
+
+  char* new_key = malloc(strlen(key) + 1);
+  char* new_value = malloc(strlen(value) + 1);
+
+  if (new_key == NULL || new_value == NULL) {
+    return LIBCFG_ERROR_MALLOC;
+  }
+
+  strcpy(new_key, key);
+  strcpy(new_value, value);
+
+  entry->key = new_key;
+  entry->value = new_value;
+
+  return LIBCFG_OK;
+}
+
+int libcfg_remove_entry_from_list(LibCfgEntry** entries, int* entries_size,
+                                  LibCfgEntry* entry) {
+  for (int i = 0; i < *entries_size; i++) {
+    LibCfgEntry* list_entry = &(*entries)[i];
+
+    if (list_entry == entry) {
+      for (int j = i; j < (*entries_size) - 1; j++) {
+        (*entries)[j] = (*entries)[j + 1];
+      }
+
+      LibCfgEntry* new_entries =
+          realloc(*entries, ((*entries_size) - 1) * sizeof(LibCfgEntry));
+
+      if (new_entries == NULL) {
+        return LIBCFG_ERROR_MALLOC;
+      }
+
+      *entries = new_entries;
+      (*entries_size)--;
+
+      break;
+    }
+  }
+
+  return LIBCFG_OK;
+}
+
+LibCfgEntry* libcfg_add_entry(LibCfgRoot* cfg, const char* key,
+                              const char* value) {
+  LibCfgEntry* result = NULL;
+
+  libcfg_last_error = libcfg_add_entry_to_list(
+      &cfg->entries, &cfg->entries_size, key, value, &result);
+
+  return result;
+}
+
+int libcfg_remove_entry(LibCfgRoot* cfg, LibCfgEntry* entry) {
+  libcfg_last_error =
+      libcfg_remove_entry_from_list(&cfg->entries, &cfg->entries_size, entry);
+
+  return libcfg_last_error;
+}
+
+LibCfgSection* libcfg_add_section(LibCfgRoot* cfg, const char* name) {
+  LibCfgSection* new_sections =
+      realloc(cfg->sections, (cfg->sections_size + 1) * sizeof(LibCfgSection));
+
+  if (new_sections == NULL) {
+    libcfg_last_error = LIBCFG_ERROR_MALLOC;
+    return NULL;
+  }
+
+  cfg->sections = new_sections;
+  cfg->sections_size++;
+
+  LibCfgSection* section = &cfg->sections[cfg->sections_size - 1];
+
+  char* new_name = malloc(strlen(name) + 1);
+
+  if (new_name == NULL) {
+    libcfg_last_error = LIBCFG_ERROR_MALLOC;
+    return NULL;
+  }
+
+  strcpy(new_name, name);
+
+  section->name = new_name;
+
+  return LIBCFG_OK;
+}
+
+int libcfg_remove_section(LibCfgRoot* cfg, LibCfgSection* section) {
+  for (int i = 0; i < cfg->sections_size; i++) {
+    LibCfgSection* list_section = &cfg->sections[i];
+
+    if (list_section == section) {
+      for (int j = i; j < cfg->sections_size - 1; j++) {
+        cfg->sections[j] = cfg->sections[j + 1];
+      }
+
+      LibCfgSection* new_sections = realloc(
+          cfg->sections, (cfg->sections_size - 1) * sizeof(LibCfgSection));
+
+      if (new_sections == NULL) {
+        libcfg_last_error = LIBCFG_ERROR_MALLOC;
+        return libcfg_last_error;
+      }
+
+      cfg->sections = new_sections;
+      cfg->sections_size--;
+
+      break;
+    }
+  }
+
+  return LIBCFG_OK;
+}
+
+LibCfgEntry* libcfg_add_section_entry(LibCfgSection* section, const char* key,
+                                      const char* value) {
+  LibCfgEntry* result = NULL;
+
+  libcfg_last_error = libcfg_add_entry_to_list(
+      &section->entries, &section->entries_size, key, value, &result);
+
+  return result;
+}
+
+int libcfg_remove_section_entry(LibCfgSection* section, LibCfgEntry* entry) {
+  libcfg_last_error = libcfg_remove_entry_from_list(
+      &section->entries, &section->entries_size, entry);
+
+  return libcfg_last_error;
+}

@@ -76,4 +76,57 @@ LibCfgRoot* libcfg_read(const char* path, const int create_file);
  */
 int libcfg_write(const char* path, LibCfgRoot* cfg);
 
+/*
+ * Add a new root entry to given config and return. This allocates
+ * memory, sets default values and updates the LibCfgRoot struct.
+ * Value can be empty. This copies key and value rather than referencing.
+ * Returns NULL and sets an error to be read with libcfg_get_last_error()
+ * when unsuccessful.
+ */
+LibCfgEntry* libcfg_add_entry(LibCfgRoot* cfg, const char* key,
+                              const char* value);
+
+/*
+ * Remove given root entry from given config. This frees memory
+ * and updates the LibCfgRoot struct. Returns 0 when successful
+ * or a negative error code when not. Error can also be read
+ * using libcfg_get_last_error().
+ */
+int libcfg_remove_entry(LibCfgRoot* cfg, LibCfgEntry* entry);
+
+/*
+ * Add a new section to given config and return. This allocates
+ * memory, sets default values and updates the LibCfgRoot struct.
+ * Name can be empty. This copies name rather than referencing.
+ * Returns NULL and sets an error to be read with libcfg_get_last_error()
+ * when unsuccessful.
+ */
+LibCfgSection* libcfg_add_section(LibCfgRoot* cfg, const char* name);
+
+/*
+ * Remove given section from given config. This frees memory
+ * and updates the LibCfgRoot struct. Returns 0 when successful
+ * or a negative error code when not. Error can also be read
+ * using libcfg_get_last_error().
+ */
+int libcfg_remove_section(LibCfgRoot* cfg, LibCfgSection* section);
+
+/*
+ * Add a new entry to given section and return. This allocates
+ * memory, sets default values and updates the LibCfgSection struct.
+ * Value can be empty. This copies key and value rather than referencing.
+ * Returns NULL and sets an error to be read with libcfg_get_last_error()
+ * when unsuccessful.
+ */
+LibCfgEntry* libcfg_add_section_entry(LibCfgSection* section, const char* key,
+                                      const char* value);
+
+/*
+ * Remove given entry from given section. This frees memory
+ * and updates the LibCfgSection struct. Returns 0 when successful
+ * or a negative error code when not. Error can also be read
+ * using libcfg_get_last_error().
+ */
+int libcfg_remove_section_entry(LibCfgSection* section, LibCfgEntry* entry);
+
 #endif

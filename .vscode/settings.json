@@ -1,0 +1,18 @@
+{
+  "files.associations": {
+    "*.tcc": "c",
+    "chrono": "c",
+    "cmath": "c",
+    "numeric": "c",
+    "ratio": "c",
+    "cinttypes": "c",
+    "cstdlib": "c",
+    "stdlib.h": "c",
+    "nobuild.h": "c",
+    "functional": "c",
+    "random": "c",
+    "cstring": "c"
+  },
+  "editor.wordWrap": "wordWrapColumn",
+  "editor.wordWrapColumn": 120,
+}

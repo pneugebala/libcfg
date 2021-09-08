@@ -1,0 +1,3 @@
+[submodule "include/nobuild"]
+	path = include/nobuild
+	url = git@github.com:tsoding/nobuild.git

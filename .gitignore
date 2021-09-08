@@ -1,6 +1,7 @@
 build/
 nobuild
 !nobuild/
+example/gen
 
 *~
 

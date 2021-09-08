@@ -125,6 +125,8 @@ void libcfg_free(LibCfgRoot* cfg) {
   libcfg_ptr_free(cfg->entries);
   libcfg_ptr_free(cfg->sections);
   libcfg_ptr_free(cfg);
+
+  libcfg_last_error = LIBCFG_OK;
 }
 
 LibCfgError libcfg_get_last_error() { return libcfg_last_error; }
@@ -264,7 +266,97 @@ LibCfgRoot* libcfg_read(const char* path, const int create_file) {
     return NULL;
   }
 
+  libcfg_last_error = LIBCFG_OK;
   return root;
 }
 
-int libcfg_write(const char* path, LibCfgRoot* cfg) {}
+int libcfg_fprintf_quoted(FILE* f_ptr, const char* str) {
+  int needs_quotes = strstr(str, " ") || strstr(str, "\t") ||
+                     strstr(str, "\v") || strstr(str, "\f");
+
+  if (needs_quotes)
+    if (fprintf(f_ptr, "\"") < 0) {
+      return LIBCFG_ERROR_WRITING_FILE;
+    }
+
+  if (fprintf(f_ptr, str) < 0) {
+    return LIBCFG_ERROR_WRITING_FILE;
+  }
+
+  if (needs_quotes)
+    if (fprintf(f_ptr, "\"") < 0) {
+      return LIBCFG_ERROR_WRITING_FILE;
+    }
+
+  return LIBCFG_OK;
+}
+
+int libcfg_write_entries(FILE* f_ptr, LibCfgEntry* entries, int entries_size,
+                         int has_more) {
+  for (int i = 0; i < entries_size; i++) {
+    LibCfgEntry* entry = &entries[i];
+
+    if ((libcfg_last_error = libcfg_fprintf_quoted(f_ptr, entry->key)) !=
+        LIBCFG_OK) {
+      return libcfg_last_error;
+    }
+
+    if (fprintf(f_ptr, " = ") < 0) {
+      return LIBCFG_ERROR_WRITING_FILE;
+    }
+
+    if ((libcfg_last_error = libcfg_fprintf_quoted(f_ptr, entry->value)) !=
+        LIBCFG_OK) {
+      return libcfg_last_error;
+    }
+
+    if (fprintf(f_ptr, "\n") < 0) {
+      return LIBCFG_ERROR_WRITING_FILE;
+    }
+  }
+
+  if (entries_size > 0 && has_more) {
+    if (fprintf(f_ptr, "\n") < 0) {
+      return LIBCFG_ERROR_WRITING_FILE;
+    }
+  }
+}
+
+int libcfg_write(const char* path, LibCfgRoot* cfg) {
+  FILE* f_ptr;
+
+  if ((libcfg_last_error = libcfg_open_file(path, "wb+", &f_ptr)) !=
+      LIBCFG_OK) {
+    if (libcfg_get_last_error() != LIBCFG_ERROR_OPENING_FILE) {
+      return libcfg_last_error;
+
+      if ((libcfg_last_error = libcfg_open_file(path, "ab+", &f_ptr)) !=
+          LIBCFG_OK) {
+        return libcfg_last_error;
+      }
+    }
+  }
+
+  libcfg_write_entries(f_ptr, cfg->entries, cfg->entries_size,
+                       cfg->sections_size > 0);
+
+  for (int i = 0; i < cfg->sections_size; i++) {
+    LibCfgSection* section = &cfg->sections[i];
+
+    if (fprintf(f_ptr, "[%s]\n", section->name) < 0) {
+      libcfg_last_error = LIBCFG_ERROR_WRITING_FILE;
+      return libcfg_last_error;
+    }
+
+    if ((libcfg_last_error = libcfg_write_entries(
+             f_ptr, section->entries, section->entries_size,
+             i < cfg->sections_size - 1)) != LIBCFG_OK) {
+      return libcfg_last_error;
+    }
+  }
+
+  fclose(f_ptr);
+
+  libcfg_last_error = LIBCFG_OK;
+  return LIBCFG_OK;
+}

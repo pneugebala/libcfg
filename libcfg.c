@@ -46,6 +46,7 @@ int libcfg_getline(FILE* f_ptr, char** buffer_key, int* buffer_key_size,
   int is_eof = 0;
   int has_errors = 0;
   int is_in_quotes = 0;
+  int is_in_braces = 0;
   int is_after_equals = 0;
 
   while (!is_eol && !is_eof && !has_errors) {
@@ -57,7 +58,7 @@ int libcfg_getline(FILE* f_ptr, char** buffer_key, int* buffer_key_size,
       is_eol = 1;
     } else if (c == '\r') {
       continue;
-    } else if (!is_in_quotes &&
+    } else if (!is_in_quotes && !is_in_braces &&
                (c == ' ' || c == '\t' || c == '\v' || c == '\f')) {
       continue;
     } else if (c == '"') {
@@ -70,6 +71,9 @@ int libcfg_getline(FILE* f_ptr, char** buffer_key, int* buffer_key_size,
 
       is_after_equals = 1;
     } else {
+      if (c == '[') is_in_braces = 1;
+      if (c == ']') is_in_braces = 0;
+
       int* index;
       int* buffer_size;
       char** buffer;

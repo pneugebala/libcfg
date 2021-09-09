@@ -7,8 +7,8 @@ int main(void) {
   LibCfgRoot* cfg = libcfg_read(read_path, 0);
   int last_error = libcfg_get_last_error();
 
-  cfg->entries[0].value = "2";
-  cfg->entries[1].value = "Hello";
+  libcfg_modify_entry(&cfg->entries[0], NULL, "2");
+  libcfg_modify_entry(&cfg->entries[1], NULL, "Hello");
 
   libcfg_add_entry(cfg, "is_new", "true");
   libcfg_remove_entry(cfg, &cfg->entries[1]);

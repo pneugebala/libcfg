@@ -432,6 +432,49 @@ int libcfg_remove_entry_from_list(LibCfgEntry** entries, int* entries_size,
   return LIBCFG_OK;
 }
 
+int libcfg_update_char_ptr(char** dest, const char* src) {
+  if (src != NULL) {
+    char* new_dest = malloc(strlen(src) + 1);
+
+    if (new_dest == NULL) {
+      return LIBCFG_ERROR_MALLOC;
+    }
+
+    strcpy(new_dest, src);
+
+    libcfg_ptr_free(*dest);
+    *dest = new_dest;
+  }
+
+  return LIBCFG_OK;
+}
+
+int libcfg_modify_entry(LibCfgEntry* entry, const char* key,
+                        const char* value) {
+  libcfg_last_error = libcfg_update_char_ptr(&entry->key, key);
+  if (libcfg_last_error != LIBCFG_OK) {
+    return libcfg_last_error;
+  }
+
+  libcfg_last_error = libcfg_update_char_ptr(&entry->value, value);
+  if (libcfg_last_error != LIBCFG_OK) {
+    return libcfg_last_error;
+  }
+
+  libcfg_last_error = LIBCFG_OK;
+  return libcfg_last_error;
+}
+
+int libcfg_modify_section(LibCfgSection* section, const char* name) {
+  libcfg_last_error = libcfg_update_char_ptr(&section->name, name);
+  if (libcfg_last_error != LIBCFG_OK) {
+    return libcfg_last_error;
+  }
+
+  libcfg_last_error = LIBCFG_OK;
+  return libcfg_last_error;
+}
+
 LibCfgEntry* libcfg_add_entry(LibCfgRoot* cfg, const char* key,
                               const char* value) {
   LibCfgEntry* result = NULL;

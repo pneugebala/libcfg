@@ -77,6 +77,22 @@ LibCfgRoot* libcfg_read(const char* path, const int create_file);
 int libcfg_write(const char* path, LibCfgRoot* cfg);
 
 /*
+ * Modify given entry by setting given key and value. The key is not
+ * set when the char pointer is NULL. Same with value.
+ * Returns 0 when successful or a negative error code when
+ * not. Error can also be read using libcfg_get_last_error().
+ */
+int libcfg_modify_entry(LibCfgEntry* entry, const char* key, const char* value);
+
+/*
+ * Modify given section by setting given name. The name is not
+ * set when the char pointer is NULL.
+ * Returns 0 when successful or a negative error code when
+ * not. Error can also be read using libcfg_get_last_error().
+ */
+int libcfg_modify_section(LibCfgSection* section, const char* name);
+
+/*
  * Add a new root entry to given config and return. This allocates
  * memory, sets default values and updates the LibCfgRoot struct.
  * Value can be empty. This copies key and value rather than referencing.

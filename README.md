@@ -37,7 +37,7 @@ int main(void) {
   LibCfgRoot* cfg = libcfg_read(path, 1);
 
   // Set the second entry's value to 'Hello'.
-  cfg->entries[1].value = "Hello";
+  libcfg_modify_entry(&cfg->entries[1], NULL, "Hello");
 
   // Add a new entry with key 'is_new' and value 'true'.
   libcfg_add_entry(cfg, "is_new", "true");

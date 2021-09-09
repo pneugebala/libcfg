@@ -22,7 +22,9 @@ int main(void) {
   libcfg_add_section_entry(&cfg->sections[1], "is_new", "N/A");
 
   libcfg_write(write_path, cfg);
+
   last_error = libcfg_get_last_error();
+  printf("%d\n", last_error);
 
   libcfg_free(cfg);
 

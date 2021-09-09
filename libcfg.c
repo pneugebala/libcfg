@@ -90,7 +90,6 @@ int libcfg_getline(FILE* f_ptr, char** buffer_key, int* buffer_key_size,
 
       if (*index >= (*buffer_size) - 1) {
         *buffer_size += buffer_inc;
-        int new_size = *buffer_size + 1;
         char* new_buffer = realloc(*buffer, *buffer_size + 1);
 
         if (new_buffer == NULL) {
@@ -156,7 +155,10 @@ LibCfgRoot* libcfg_read(const char* path, const int create_file) {
   int has_errors = 0;
 
   LibCfgRoot* root = malloc(sizeof(LibCfgRoot));
-  if (root == NULL) return LIBCFG_ERROR_MALLOC;
+  if (root == NULL) {
+    libcfg_last_error = LIBCFG_ERROR_MALLOC;
+    return NULL;
+  }
 
   root->entries = NULL;
   root->entries_size = 0;
@@ -182,7 +184,7 @@ LibCfgRoot* libcfg_read(const char* path, const int create_file) {
     }
 
     if (buffer_key_len > 0 && buffer_key[0] == '[') {
-      if (!buffer_key[buffer_key_len - 1] == ']') {
+      if (buffer_key[buffer_key_len - 1] != ']') {
         has_errors = LIBCFG_ERROR_CFG_NO_CLOSING_SECTION_BRACE;
         continue;
       }
@@ -397,6 +399,8 @@ int libcfg_add_entry_to_list(LibCfgEntry** entries, int* entries_size,
 
   entry->key = new_key;
   entry->value = new_value;
+
+  *out_entry = entry;
 
   return LIBCFG_OK;
 }

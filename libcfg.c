@@ -250,7 +250,7 @@ LibCfgRoot* libcfg_read(const char* path, const int create_file) {
     LibCfgEntry* entry = &(*target_entries)[*target_entries_size - 1];
 
     entry->key = malloc(buffer_key_len + 1);
-    entry->value = malloc(buffer_key_len + 1);
+    entry->value = malloc(buffer_value_len + 1);
 
     if (entry->key == NULL || entry->value == NULL) {
       has_errors = LIBCFG_ERROR_MALLOC;

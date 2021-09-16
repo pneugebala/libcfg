@@ -114,15 +114,31 @@ int libcfg_getline(FILE* f_ptr, char** buffer_key, int* buffer_key_size,
   return LIBCFG_OK;
 }
 
+void libcfg_free_entry(LibCfgEntry* entry, int only_children) {
+  libcfg_ptr_free(entry->key);
+  libcfg_ptr_free(entry->value);
+
+  if (!only_children) libcfg_ptr_free(entry);
+}
+
+void libcfg_free_section(LibCfgSection* section, int only_children) {
+  for (int i = 0; i < section->entries_size; i++) {
+    libcfg_free_entry(&section->entries[i], 1);
+  }
+
+  libcfg_ptr_free(section->entries);
+  libcfg_ptr_free(section->name);
+
+  if (!only_children) libcfg_ptr_free(section);
+}
+
 void libcfg_free(LibCfgRoot* cfg) {
   for (int i = 0; i < cfg->sections_size; i++) {
-    for (int j = 0; j < cfg->sections[i].entries_size; j++) {
-      libcfg_ptr_free(cfg->sections[i].entries[j].key);
-      libcfg_ptr_free(cfg->sections[i].entries[j].value);
-    }
+    libcfg_free_section(&cfg->sections[i], 1);
+  }
 
-    libcfg_ptr_free(cfg->sections[i].entries);
-    libcfg_ptr_free(cfg->sections[i].name);
+  for (int i = 0; i < cfg->entries_size; i++) {
+    libcfg_free_entry(&cfg->entries[i], 1);
   }
 
   libcfg_ptr_free(cfg->entries);
@@ -411,18 +427,25 @@ int libcfg_remove_entry_from_list(LibCfgEntry** entries, int* entries_size,
     LibCfgEntry* list_entry = &(*entries)[i];
 
     if (list_entry == entry) {
-      for (int j = i; j < (*entries_size) - 1; j++) {
-        (*entries)[j] = (*entries)[j + 1];
+      if (*entries_size > 1) {
+        libcfg_free_entry(list_entry, 1);
+
+        for (int j = i; j < (*entries_size) - 1; j++) {
+          (*entries)[j] = (*entries)[j + 1];
+        }
+
+        LibCfgEntry* new_entries =
+            realloc(*entries, ((*entries_size) - 1) * sizeof(LibCfgEntry));
+
+        if (new_entries == NULL) {
+          return LIBCFG_ERROR_MALLOC;
+        }
+
+        *entries = new_entries;
+      } else {
+        libcfg_free_entry(*entries, 0);
+        *entries = NULL;
       }
-
-      LibCfgEntry* new_entries =
-          realloc(*entries, ((*entries_size) - 1) * sizeof(LibCfgEntry));
-
-      if (new_entries == NULL) {
-        return LIBCFG_ERROR_MALLOC;
-      }
-
-      *entries = new_entries;
       (*entries_size)--;
 
       break;
@@ -528,19 +551,27 @@ int libcfg_remove_section(LibCfgRoot* cfg, LibCfgSection* section) {
     LibCfgSection* list_section = &cfg->sections[i];
 
     if (list_section == section) {
-      for (int j = i; j < cfg->sections_size - 1; j++) {
-        cfg->sections[j] = cfg->sections[j + 1];
+      if (cfg->sections_size > 1) {
+        libcfg_free_section(list_section, 1);
+
+        for (int j = i; j < cfg->sections_size - 1; j++) {
+          cfg->sections[j] = cfg->sections[j + 1];
+        }
+
+        LibCfgSection* new_sections = realloc(
+            cfg->sections, (cfg->sections_size - 1) * sizeof(LibCfgSection));
+
+        if (new_sections == NULL) {
+          libcfg_last_error = LIBCFG_ERROR_MALLOC;
+          return libcfg_last_error;
+        }
+
+        cfg->sections = new_sections;
+      } else {
+        libcfg_free_section(cfg->sections, 0);
+        cfg->sections = NULL;
       }
 
-      LibCfgSection* new_sections = realloc(
-          cfg->sections, (cfg->sections_size - 1) * sizeof(LibCfgSection));
-
-      if (new_sections == NULL) {
-        libcfg_last_error = LIBCFG_ERROR_MALLOC;
-        return libcfg_last_error;
-      }
-
-      cfg->sections = new_sections;
       cfg->sections_size--;
 
       break;

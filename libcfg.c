@@ -517,7 +517,8 @@ LibCfgSection* libcfg_add_section(LibCfgRoot* cfg, const char* name) {
 
   section->name = new_name;
 
-  return LIBCFG_OK;
+  libcfg_last_error = LIBCFG_OK;
+  return section;
 }
 
 int libcfg_remove_section(LibCfgRoot* cfg, LibCfgSection* section) {

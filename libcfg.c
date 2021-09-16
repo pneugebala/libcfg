@@ -516,6 +516,8 @@ LibCfgSection* libcfg_add_section(LibCfgRoot* cfg, const char* name) {
   strcpy(new_name, name);
 
   section->name = new_name;
+  section->entries = NULL;
+  section->entries_size = 0;
 
   libcfg_last_error = LIBCFG_OK;
   return section;

@@ -301,7 +301,7 @@ int libcfg_fprintf_quoted(FILE* f_ptr, const char* str) {
       return LIBCFG_ERROR_WRITING_FILE;
     }
 
-  if (fprintf(f_ptr, str) < 0) {
+  if (fprintf(f_ptr, "%s", str) < 0) {
     return LIBCFG_ERROR_WRITING_FILE;
   }
 
